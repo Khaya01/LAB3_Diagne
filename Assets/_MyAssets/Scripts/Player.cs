@@ -6,19 +6,19 @@ public class Player : MonoBehaviour
 {
     // ***** Attributs *****
     
-    [SerializeField] private float _vitesse = 800f;  //Vitesse de déplacement du joueur
+    [SerializeField] private float _vitesse = 800f;  //Vitesse de dï¿½placement du joueur
     [SerializeField] private float _rotationSpeed = 700f;
     private Rigidbody _rb;  // Variable pour emmagasiner le rigidbody du joueur
     private bool _aBouger = false;
     private float _tempsDepart = -1f;
     
-    //  ***** Méthodes privées *****
+    //  ***** Mï¿½thodes privï¿½es *****
     
     private void Start()
     {
         // Position initiale du joueur
-        //transform.position = new Vector3(-30f, 0.51f, -30f);  // place le joueur à sa position initiale 
-        _rb = GetComponent<Rigidbody>();  // Récupère le rigidbody du Player
+        //transform.position = new Vector3(-30f, 0.51f, -30f);  // place le joueur ï¿½ sa position initiale 
+        _rb = GetComponent<Rigidbody>();  // Rï¿½cupï¿½re le rigidbody du Player
         _aBouger = false;
     }
 
@@ -30,22 +30,22 @@ public class Player : MonoBehaviour
             _tempsDepart = Time.time;
         }
     }
-    // Ici on utilise FixedUpdate car les mouvements du joueurs implique le déplacement d'un rigidbody
+    // Ici on utilise FixedUpdate car les mouvements du joueurs implique le dï¿½placement d'un rigidbody
     private void FixedUpdate()
     {
         MouvementsJoueur();
     }
 
     /*
-     * Méthode qui gère les déplacements du joueur
+     * Mï¿½thode qui gï¿½re les dï¿½placements du joueur
      */
     private void MouvementsJoueur()
     {
-        float positionX = Input.GetAxisRaw("Horizontal"); // Récupère la valeur de l'axe horizontal de l'input manager
-        float positionZ = Input.GetAxisRaw("Vertical");  // Récupère la valeur de l'axe vertical de l'input manager
-        Vector3 direction = new Vector3(positionX, 0f, positionZ);  // Établi la direction du vecteur à appliquer sur le joueur
+        float positionX = Input.GetAxisRaw("Horizontal"); // Rï¿½cupï¿½re la valeur de l'axe horizontal de l'input manager
+        float positionZ = Input.GetAxisRaw("Vertical");  // Rï¿½cupï¿½re la valeur de l'axe vertical de l'input manager
+        Vector3 direction = new Vector3(positionX, 0f, positionZ);  // ï¿½tabli la direction du vecteur ï¿½ appliquer sur le joueur
         direction.Normalize();
-        _rb.velocity = direction * Time.deltaTime * _vitesse;  // Applique la vélocité sur le corps du joueur dans la direction du vecteur
+        _rb.linearVelocity = direction * Time.deltaTime * _vitesse;  // Applique la vï¿½locitï¿½ sur le corps du joueur dans la direction du vecteur
         
         if (direction != Vector3.zero)
         {
@@ -55,7 +55,7 @@ public class Player : MonoBehaviour
         }
     }
 
-    // ***** Méthodes publiques *****
+    // ***** Mï¿½thodes publiques *****
 
     public float GetTempsDepart()
     {

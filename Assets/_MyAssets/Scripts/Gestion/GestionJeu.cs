@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -11,12 +12,16 @@ public class GestionJeu : MonoBehaviour
     private int _pointage = 0;  // Attribut qui conserve le nombre d'accrochages
     public int Pointage => _pointage; // Accesseur de l'attribut
 
-    private int[] listeAccrochages = { 0, 0 };
-    private float[] listeTemps = { 0.0f, 0.0f };
- 
+    private List<int> _listeAccrochages = new List<int>();
+    public List<int> ListeAccrochages => _listeAccrochages;
+
+    private List<float> _listeTemps = new List<float>();
+    public List<float> ListeTemps => _listeTemps;
+
     // ***** Méthodes privées *****
     private void Awake()
     {
+        // Singleton        
         // Vérifie si un gameObject GestionJeu est déjà présent sur la scène si oui
         // on détruit celui qui vient d'être ajouté. Sinon on le conserve pour le 
         // scène suivante et associe Instance.
@@ -36,11 +41,6 @@ public class GestionJeu : MonoBehaviour
         _pointage = 0;
     }
 
-    private void Update()
-    {
-
-    }
-
     // ***** Méthodes publiques ******
 
     /*
@@ -51,22 +51,19 @@ public class GestionJeu : MonoBehaviour
         _pointage++;
     }
 
-    // Accesseur qui retourne le temps pour le niveau 1
-    public float GetTempsNiveau(int niveau)
+    // Méthode qui reçoit les valeurs pour le niveau et l'ajoute dans les listes respectives
+    public void SetNiveau(float temps)
     {
-        return listeTemps[niveau-1];
-    }
-    
-    // Accesseur qui retourne le nombre d'accrochages pour le niveau 1
-   public int GetAccrochagesNiveau(int niveau)
-    {
-        return listeAccrochages[niveau-1];
-    }
-
-    // Méthode qui reçoit les valeurs pour le niveau 1 et qui modifie les attributs respectifs
-    public void SetNiveau(int accrochages, float temps, int niveau)
-    {
-        listeAccrochages[niveau-1] = accrochages;
-        listeTemps[niveau-1] = temps;
+        //Si premier niveau on ajoute directement le nombre de collision
+        //Sinon on ajoute les collisions - les collisions des niveaux précédents
+        if (_listeAccrochages.Count == 0)
+        {
+            _listeAccrochages.Add(_pointage);
+        }
+        else
+        {
+            ListeAccrochages.Add(_pointage - _listeAccrochages.Sum());
+        }
+        _listeTemps.Add(temps);
     }
 }

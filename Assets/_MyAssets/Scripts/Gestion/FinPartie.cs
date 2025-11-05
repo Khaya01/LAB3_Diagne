@@ -1,13 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class FinPartie : MonoBehaviour
 {
     // ***** Attributs *****
-
-    [SerializeField] private int _idNiveau = 1;
     private bool _finPartie = false;  // booléen qui détermine si la partie est terminée
     private Player _player;  // attribut qui contient un objet de type Player
 
@@ -15,7 +14,7 @@ public class FinPartie : MonoBehaviour
     
     private void Start()
     {
-        _player = FindObjectOfType<Player>();  // récupère sur la scène le gameObject de type Player
+        _player = FindAnyObjectByType<Player>();  // récupère sur la scène le gameObject de type Player
     }
 
     /*
@@ -27,14 +26,24 @@ public class FinPartie : MonoBehaviour
         {
             _finPartie = true; // met le booléen à vrai pour indiquer la fin de la partie
             int noScene = SceneManager.GetActiveScene().buildIndex; // Récupère l'index de la scène en cours
-            GestionJeu.Instance.SetNiveau(GestionJeu.Instance.Pointage, Time.time - _player.GetTempsDepart(), _idNiveau);
+            GestionJeu.Instance.SetNiveau(Time.time - _player.GetTempsDepart());
             if (noScene != SceneManager.sceneCountInBuildSettings -1)
             {
                 SceneManager.LoadScene(noScene + 1);
             }
             else
             {
-                Destroy(_player);
+                Destroy(_player.gameObject);
+                for(int i=0; i < GestionJeu.Instance.ListeTemps.Count; i++)
+                {
+                    Debug.Log("Temps niveau" + (i+1) + " : " + GestionJeu.Instance.ListeTemps[i].ToString("f2") + " secs.");
+                    Debug.Log("Collisions niveau" + (i+1) + " : " + GestionJeu.Instance.ListeAccrochages[i].ToString());
+                    float total = GestionJeu.Instance.ListeTemps[i] + GestionJeu.Instance.ListeAccrochages[i];
+                    Debug.Log("Temps total niveau" + (i+1) + " : " + total.ToString("f2") + " secs.");
+                    Debug.Log("****************************************");
+                }
+                float totalFinal = GestionJeu.Instance.ListeTemps.Sum() + GestionJeu.Instance.ListeAccrochages.Sum();
+                Debug.Log("Temps final : " + totalFinal.ToString("f2") + " secondes");
             }
 
         }
