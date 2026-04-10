@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public class GestionCollision : MonoBehaviour
 {
@@ -10,7 +11,13 @@ public class GestionCollision : MonoBehaviour
     private Material _materielInitial;
     private bool _touche;  // Booléen qui permet de détecter si l'objet a été touché
     private float _tempsTouche = 0f;
-    
+
+    public static event EventHandler<OnCollisionOccuredEventArgs> OnCollisionOccured;
+
+    public class OnCollisionOccuredEventArgs : EventArgs
+    {
+        public int CollisionValue;   // Arg de l'evenement
+    }
 
     // ***** Méthodes privées *****
     private void Start()
@@ -40,6 +47,7 @@ public class GestionCollision : MonoBehaviour
             gameObject.GetComponent<MeshRenderer>().material = _materielRouge;  //change la couleur du matériel à rouge
             GestionJeu.Instance.AugmenterPointage();  // Appelle la méthode publique dans GestionJeu pour augmenter le pointage
             _tempsTouche = Time.time;
+            OnCollisionOccured?.Invoke(this, new OnCollisionOccuredEventArgs { CollisionValue = 1 });
         }
     }
 }

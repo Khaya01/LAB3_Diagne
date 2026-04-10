@@ -1,6 +1,9 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using static UnityEngine.Timeline.DirectorControlPlayable;
 
 public class Player : MonoBehaviour
 {
@@ -11,15 +14,38 @@ public class Player : MonoBehaviour
     private Rigidbody _rb;  // Variable pour emmagasiner le rigidbody du joueur
     private bool _aBouger = false;
     private float _tempsDepart = -1f;
-    
+    private InputSystem_Actions _inputSystem_Actions;
+
+
+    public static event EventHandler OnPlayerPause;
+
+    public static void TriggerOnPlayerPause(object sender)
+    {
+        OnPlayerPause?.Invoke(sender, EventArgs.Empty);
+    }
+
     //  ***** M�thodes priv�es *****
-    
+
+    private Action<UnityEngine.InputSystem.InputAction.CallbackContext> _pauseAction;
+
     private void Start()
     {
-        // Position initiale du joueur
-        //transform.position = new Vector3(-30f, 0.51f, -30f);  // place le joueur � sa position initiale 
-        _rb = GetComponent<Rigidbody>();  // R�cup�re le rigidbody du Player
+        _rb = GetComponent<Rigidbody>();
         _aBouger = false;
+
+        _inputSystem_Actions = new InputSystem_Actions();
+        _inputSystem_Actions.Player.Enable();
+            _pauseAction = (ctx) => {
+        Debug.Log("Pause fired! Subscribers: " + OnPlayerPause?.GetInvocationList().Length);
+        OnPlayerPause?.Invoke(this, EventArgs.Empty);
+    };
+        _inputSystem_Actions.Player.Pause.performed += _pauseAction;
+    }
+
+    private void OnDestroy()
+    {
+        _inputSystem_Actions.Player.Pause.performed -= _pauseAction;
+        _inputSystem_Actions.Player.Disable();
     }
 
 
@@ -72,5 +98,10 @@ public class Player : MonoBehaviour
     public bool GetABouger()
     {
         return _aBouger;
+    }
+
+    public void EndGamePlayer()
+    {
+        Destroy(gameObject);
     }
 }

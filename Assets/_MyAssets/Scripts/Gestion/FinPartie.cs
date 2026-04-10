@@ -27,12 +27,15 @@ public class FinPartie : MonoBehaviour
             _finPartie = true; // met le booléen à vrai pour indiquer la fin de la partie
             int noScene = SceneManager.GetActiveScene().buildIndex; // Récupère l'index de la scène en cours
             GestionJeu.Instance.SetNiveau(Time.time - _player.GetTempsDepart());
-            if (noScene != SceneManager.sceneCountInBuildSettings -1)
+            Debug.Log($"ListeTemps après SetNiveau: {string.Join(", ", GestionJeu.Instance.ListeTemps)}");
+            if (noScene != SceneManager.sceneCountInBuildSettings - 2)
             {
                 SceneManager.LoadScene(noScene + 1);
             }
-            else
+            else 
             {
+                GestionJeu.Instance.EndTime = GestionJeu.Instance.ListeTemps.Sum();
+
                 Destroy(_player.gameObject);
                 for(int i=0; i < GestionJeu.Instance.ListeTemps.Count; i++)
                 {
@@ -44,8 +47,8 @@ public class FinPartie : MonoBehaviour
                 }
                 float totalFinal = GestionJeu.Instance.ListeTemps.Sum() + GestionJeu.Instance.ListeAccrochages.Sum();
                 Debug.Log("Temps final : " + totalFinal.ToString("f2") + " secondes");
+                SceneManager.LoadScene(noScene + 1);
             }
-
-        }
+        }   
     }
 }

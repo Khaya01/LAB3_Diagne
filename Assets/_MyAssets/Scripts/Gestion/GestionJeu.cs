@@ -18,6 +18,9 @@ public class GestionJeu : MonoBehaviour
     private List<float> _listeTemps = new List<float>();
     public List<float> ListeTemps => _listeTemps;
 
+
+
+
     // ***** Méthodes privées *****
     private void Awake()
     {
@@ -36,10 +39,17 @@ public class GestionJeu : MonoBehaviour
         }
     }
 
-    private void Start()
-    {
-        _pointage = 0;
-    }
+    // 
+    private float _startTimeNiveau;
+    private int _pointageDebutNiveau;
+
+    private float _startTime;
+    public float StartTime => _startTime;
+
+    private float _endTime;
+    public float EndTime { get => _endTime; set => _endTime = value; }
+
+    private bool _isPaused = false;
 
     // ***** Méthodes publiques ******
 
@@ -66,4 +76,54 @@ public class GestionJeu : MonoBehaviour
         }
         _listeTemps.Add(temps);
     }
+
+    private void Start()
+    {
+        Time.timeScale = 1.0f;
+        if (_startTime == 0) 
+        {
+            _startTime = Time.time;
+        }
+        _startTimeNiveau = Time.time;
+        _pointageDebutNiveau = _pointage;
+        Player.OnPlayerPause += Player_OnPlayerPause;
+        GestionCollision.OnCollisionOccured += CollisionManager_OnCollisionOccured;
+    }
+
+    public void RecommencerNiveau()
+    {
+        _pointage = _pointageDebutNiveau; 
+        _startTime = Time.time - (_startTimeNiveau - _startTime); 
+        Time.timeScale = 1.0f;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    private void OnDestroy()
+    {
+        GestionCollision.OnCollisionOccured -= CollisionManager_OnCollisionOccured;
+        Player.OnPlayerPause -= Player_OnPlayerPause;
+    }
+
+public void Player_OnPlayerPause(object sender, System.EventArgs e)
+{
+    Debug.Log("GestionJeu pause! isPaused: " + _isPaused + " timeScale: " + Time.timeScale);
+    if (_isPaused)
+    {
+        Time.timeScale = 1.0f;
+        _isPaused = false;
+    }
+    else
+    {
+        Time.timeScale = 0.0f;
+        _isPaused = true;
+    }
 }
+
+    private void CollisionManager_OnCollisionOccured(object sender, GestionCollision.OnCollisionOccuredEventArgs e)
+    {
+        AugmenterPointage();
+    }
+
+}
+
+

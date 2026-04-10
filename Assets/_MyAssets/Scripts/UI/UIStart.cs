@@ -1,9 +1,10 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
-public class UIStart : MonoBehaviour
+
+public class UIStart : UI
 {
 
     [SerializeField] GameObject _startPanel;
@@ -12,7 +13,29 @@ public class UIStart : MonoBehaviour
     [SerializeField] Button _startButton;
     [SerializeField] Button _closeButton;
 
-    public void OnStratClick()
+    private void Awake()
+    {
+        GestionJeu gameManager = FindAnyObjectByType<GestionJeu>();
+        if (gameManager != null)
+        {
+            Destroy(gameManager.gameObject);
+        }
+
+        UIGame uigame = FindAnyObjectByType<UIGame>();
+        if (uigame != null)
+        {
+            Destroy(uigame.gameObject);
+        }
+    }
+
+
+    private void Start()
+    {
+        //Selectionner le bouton demarrer au lancement de la scene
+        EventSystem.current.SetSelectedGameObject(_startButton.gameObject);
+    }
+
+    public void OnStartClick()
     {
         SceneManager.LoadScene(1);
     }
@@ -32,12 +55,6 @@ public class UIStart : MonoBehaviour
         _instructionPanel.SetActive(false);
     }
 
-    public void OnQuitClick()
-    {
-#if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-#else
-        Application.Quit(); // Quitter l'executable en cours
-#endif
-    }
+
+
 }
