@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class UIGame : UI
 {
@@ -12,7 +13,7 @@ public class UIGame : UI
     [SerializeField] private GameObject _pausePanel;
     [SerializeField] private Button _continueButton;
     [SerializeField] private TextMeshProUGUI _txtTime;
-    [SerializeField] private TextMeshProUGUI _txtCollisions; 
+    [SerializeField] private TextMeshProUGUI _txtCollisions;
 
     private void Awake()
     {
@@ -20,23 +21,26 @@ public class UIGame : UI
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            SceneManager.sceneLoaded += OnSceneLoaded; 
         }
         else
         {
-            // Transfère les références du nouveau au ancien
             Instance._pausePanel = this._pausePanel;
             Instance._continueButton = this._continueButton;
             Instance._txtTime = this._txtTime;
             Instance._txtCollisions = this._txtCollisions;
+
+            gameObject.SetActive(false);
             Destroy(gameObject);
         }
     }
 
     private void Start()
     {
-        Debug.Log("UIGame Start!");
+        if (Instance != this) return;
+        Player.OnPlayerPause -= Player_OnPlayerPause;
         Player.OnPlayerPause += Player_OnPlayerPause;
-        Debug.Log("UIGame subscrit à OnPlayerPause");
+        GestionCollision.OnCollisionOccured -= CollisionManager_OnCollisionOccured;
         GestionCollision.OnCollisionOccured += CollisionManager_OnCollisionOccured;
         ChangeCollisionUI();
     }
@@ -51,6 +55,8 @@ public class UIGame : UI
 
     private void OnDestroy()
     {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+
         Player.OnPlayerPause -= Player_OnPlayerPause;
         GestionCollision.OnCollisionOccured -= CollisionManager_OnCollisionOccured;
     }
@@ -65,16 +71,41 @@ public class UIGame : UI
     private void TimeDisplayUI()
     {
         Player player = FindFirstObjectByType<Player>();
-
-        if (player != null && player.GetABouger())
+        if (player == null)
         {
-            float elapsedTime = Time.time - GestionJeu.Instance.StartTime;
-            _txtTime.text = $"Temps : {elapsedTime:f2}";
+            Debug.Log("Player introuvable!");
+            return;
+        }
+
+        Debug.Log($"aBouger: {player.GetABouger()} | temps: {GestionJeu.Instance.GetTempsActuel()}");
+
+        if (player.GetABouger())
+        {
+            _txtTime.text = $"Temps : {GestionJeu.Instance.GetTempsActuel():f2}";
         }
         else
         {
             _txtTime.text = "Temps : 0.00";
         }
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        Debug.Log("UIGame rebind après reload");
+        StartCoroutine(RebindAfterLoad());
+    }
+
+    private IEnumerator RebindAfterLoad()
+    {
+        yield return null; // attend que tous les Awake/Start de la scène soient faits
+
+        Player.OnPlayerPause -= Player_OnPlayerPause;
+        Player.OnPlayerPause += Player_OnPlayerPause;
+
+        GestionCollision.OnCollisionOccured -= CollisionManager_OnCollisionOccured;
+        GestionCollision.OnCollisionOccured += CollisionManager_OnCollisionOccured;
+
+        ChangeCollisionUI();
     }
 
     private void CollisionManager_OnCollisionOccured(object sender, GestionCollision.OnCollisionOccuredEventArgs e)
@@ -84,6 +115,7 @@ public class UIGame : UI
 
     private void ChangeCollisionUI()
     {
+        Debug.Log($"_txtCollisions null? {_txtCollisions == null} | pointage: {GestionJeu.Instance.Pointage}");
         _txtCollisions.text = $"Collisions : {GestionJeu.Instance.Pointage}";
     }
 
@@ -94,8 +126,11 @@ public class UIGame : UI
 
     public void OnRecommencer()
     {
+        _pausePanel.SetActive(false);
+        Time.timeScale = 1.0f;
         GestionJeu.Instance.RecommencerNiveau();
     }
+
 
     public void OnContinue()
     {

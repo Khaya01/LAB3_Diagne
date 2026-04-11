@@ -1,4 +1,4 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -7,10 +7,9 @@ using UnityEngine.SceneManagement;
 public class GestionJeu : MonoBehaviour
 {
     public static GestionJeu Instance;
-    
-    // ***** Attributs *****
-    private int _pointage = 0;  // Attribut qui conserve le nombre d'accrochages
-    public int Pointage => _pointage; // Accesseur de l'attribut
+
+    private int _pointage = 0;
+    public int Pointage => _pointage;
 
     private List<int> _listeAccrochages = new List<int>();
     public List<int> ListeAccrochages => _listeAccrochages;
@@ -18,54 +17,95 @@ public class GestionJeu : MonoBehaviour
     private List<float> _listeTemps = new List<float>();
     public List<float> ListeTemps => _listeTemps;
 
+    private float _startTime;
+    private bool _aCommence = false; 
 
+    private float _startTimeNiveau;
+    private int _pointageDebutNiveau;
 
+    private bool _isPaused = false;
 
-    // ***** Méthodes privées *****
     private void Awake()
     {
-        // Singleton        
-        // Vérifie si un gameObject GestionJeu est déjà présent sur la scène si oui
-        // on détruit celui qui vient d'être ajouté. Sinon on le conserve pour le 
-        // scène suivante et associe Instance.
         if (Instance == null)
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            SceneManager.sceneLoaded += OnSceneLoaded;
         }
         else
         {
+            gameObject.SetActive(false);
             Destroy(gameObject);
+        }
+
+        GestionCollision.OnCollisionOccured += CollisionManager_OnCollisionOccured;
+    }
+
+    private void Start()
+    {
+        _startTime = Time.time;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        Time.timeScale = 1.0f;
+
+        _startTimeNiveau = Time.time;
+        _pointageDebutNiveau = _pointage;
+
+        _aCommence = false;
+
+        Player.OnPlayerPause -= Player_OnPlayerPause;
+        Player.OnPlayerPause += Player_OnPlayerPause;
+    }
+
+    public void StartTimer()
+    {
+        if (!_aCommence)
+        {
+            _startTime = Time.time;
+            _aCommence = true;
         }
     }
 
-    // 
-    private float _startTimeNiveau;
-    private int _pointageDebutNiveau;
+    public float GetTempsActuel()
+    {
+        if (!_aCommence) return 0f;
+        return Time.time - _startTime;
+    }
 
-    private float _startTime;
-    public float StartTime => _startTime;
+    public void RecommencerNiveau()
+    {
+        Time.timeScale = 1.0f;
 
-    private float _endTime;
-    public float EndTime { get => _endTime; set => _endTime = value; }
+        // DÃ©truire UIGame pour qu'il se recrÃ©e proprement
+        if (UIGame.Instance != null)
+        {
+            Destroy(UIGame.Instance.gameObject);
+        }
 
-    private bool _isPaused = false;
+        // Se dÃ©truire soi-mÃªme aussi
+        Destroy(gameObject);
 
-    // ***** Méthodes publiques ******
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
 
-    /*
-     * Méthode publique qui permet d'augmenter le pointage de 1
-     */
+    //public void RecommencerNiveau()
+    //{
+    //    _pointage = 0;        
+    //    _aCommence = false;
+    //    Time.timeScale = 1.0f;
+    //    SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    //}
+
     public void AugmenterPointage()
     {
         _pointage++;
     }
 
-    // Méthode qui reçoit les valeurs pour le niveau et l'ajoute dans les listes respectives
     public void SetNiveau(float temps)
     {
-        //Si premier niveau on ajoute directement le nombre de collision
-        //Sinon on ajoute les collisions - les collisions des niveaux précédents
         if (_listeAccrochages.Count == 0)
         {
             _listeAccrochages.Add(_pointage);
@@ -74,56 +114,40 @@ public class GestionJeu : MonoBehaviour
         {
             ListeAccrochages.Add(_pointage - _listeAccrochages.Sum());
         }
+
         _listeTemps.Add(temps);
     }
-
-    private void Start()
-    {
-        Time.timeScale = 1.0f;
-        if (_startTime == 0) 
-        {
-            _startTime = Time.time;
-        }
-        _startTimeNiveau = Time.time;
-        _pointageDebutNiveau = _pointage;
-        Player.OnPlayerPause += Player_OnPlayerPause;
-        GestionCollision.OnCollisionOccured += CollisionManager_OnCollisionOccured;
-    }
-
-    public void RecommencerNiveau()
-    {
-        _pointage = _pointageDebutNiveau; 
-        _startTime = Time.time - (_startTimeNiveau - _startTime); 
-        Time.timeScale = 1.0f;
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-    }
-
-    private void OnDestroy()
-    {
-        GestionCollision.OnCollisionOccured -= CollisionManager_OnCollisionOccured;
-        Player.OnPlayerPause -= Player_OnPlayerPause;
-    }
-
-public void Player_OnPlayerPause(object sender, System.EventArgs e)
-{
-    Debug.Log("GestionJeu pause! isPaused: " + _isPaused + " timeScale: " + Time.timeScale);
-    if (_isPaused)
-    {
-        Time.timeScale = 1.0f;
-        _isPaused = false;
-    }
-    else
-    {
-        Time.timeScale = 0.0f;
-        _isPaused = true;
-    }
-}
 
     private void CollisionManager_OnCollisionOccured(object sender, GestionCollision.OnCollisionOccuredEventArgs e)
     {
         AugmenterPointage();
     }
 
+    public void Player_OnPlayerPause(object sender, System.EventArgs e)
+    {
+        if (_isPaused)
+        {
+            Time.timeScale = 1.0f;
+            _isPaused = false;
+        }
+        else
+        {
+            Time.timeScale = 0.0f;
+            _isPaused = true;
+        }
+    }
+
+    private float _endTime;
+public float EndTime
+{
+    get => _endTime;
+    set => _endTime = value;
 }
 
-
+    private void OnDestroy()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+        GestionCollision.OnCollisionOccured -= CollisionManager_OnCollisionOccured;
+        Player.OnPlayerPause -= Player_OnPlayerPause;
+    }
+}
