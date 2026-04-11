@@ -1107,7 +1107,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Retour Menu
+  m_text: Retour menu
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 9e3ec31fc9cb2084c86a8f8297a50316, type: 2}
   m_sharedMaterial: {fileID: -8891140418543858237, guid: 9e3ec31fc9cb2084c86a8f8297a50316, type: 2}
@@ -1960,7 +1960,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Repprendre
+  m_text: Reprendre niveau
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 9e3ec31fc9cb2084c86a8f8297a50316, type: 2}
   m_sharedMaterial: {fileID: -8891140418543858237, guid: 9e3ec31fc9cb2084c86a8f8297a50316, type: 2}
@@ -1987,8 +1987,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 70
-  m_fontSizeBase: 70
+  m_fontSize: 50
+  m_fontSizeBase: 50
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -2551,7 +2551,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 725845033}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -8605,10 +8605,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 2262865949010870272, guid: 4b688d85ad0a4574194627b169bd41ea, type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 4035983259674519105, guid: 4b688d85ad0a4574194627b169bd41ea, type: 3}
       propertyPath: m_Name
       value: UIGame

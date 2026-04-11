@@ -2,16 +2,17 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
-
+using System.Collections;
 
 public class UIStart : UI
 {
+    [SerializeField] private GameObject _startPanel;
+    [SerializeField] private GameObject _instructionPanel;
 
-    [SerializeField] GameObject _startPanel;
-    [SerializeField] GameObject _instructionPanel;
+    [SerializeField] private Button _startButton;
+    [SerializeField] private Button _closeButton;
 
-    [SerializeField] Button _startButton;
-    [SerializeField] Button _closeButton;
+    [SerializeField] private ScrollRect _scrollRect;
 
     private void Awake()
     {
@@ -28,11 +29,31 @@ public class UIStart : UI
         }
     }
 
-
     private void Start()
     {
-        //Selectionner le bouton demarrer au lancement de la scene
-        EventSystem.current.SetSelectedGameObject(_startButton.gameObject);
+        StartCoroutine(SelectionnerBoutonStart());
+    }
+
+    private IEnumerator SelectionnerBoutonStart()
+    {
+        yield return null;
+
+        if (EventSystem.current != null && _startButton != null)
+        {
+            EventSystem.current.SetSelectedGameObject(null);
+            EventSystem.current.SetSelectedGameObject(_startButton.gameObject);
+        }
+    }
+
+    private IEnumerator SelectionnerBoutonClose()
+    {
+        yield return null;
+
+        if (EventSystem.current != null && _closeButton != null)
+        {
+            EventSystem.current.SetSelectedGameObject(null);
+            EventSystem.current.SetSelectedGameObject(_closeButton.gameObject);
+        }
     }
 
     public void OnStartClick()
@@ -42,19 +63,30 @@ public class UIStart : UI
 
     public void OnInstructionClick()
     {
-        // Faire apparaitre l'instruction
         _startPanel.SetActive(false);
         _instructionPanel.SetActive(true);
-        EventSystem.current.SetSelectedGameObject(_closeButton.gameObject);
+
+        StartCoroutine(SelectionnerBoutonClose());
     }
 
     public void OnCloseClick()
     {
-        // Faire apparaitre l'instruction
         _startPanel.SetActive(true);
         _instructionPanel.SetActive(false);
+
+        StartCoroutine(SelectionnerBoutonStart());
     }
+    private void Update()
+    {
+        if (_instructionPanel.activeSelf && _scrollRect != null)
+        {
+            float input = Input.GetAxis("Vertical");
 
-
+            if (Mathf.Abs(input) > 0.1f)
+            {
+                _scrollRect.verticalNormalizedPosition += input * Time.unscaledDeltaTime * 2f;
+            }
+        }
+    }
 
 }

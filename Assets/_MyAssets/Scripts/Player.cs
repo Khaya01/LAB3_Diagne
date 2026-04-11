@@ -35,7 +35,10 @@ public class Player : MonoBehaviour
 
         _inputSystem_Actions = new InputSystem_Actions();
         _inputSystem_Actions.Player.Enable();
-        _pauseAction = (ctx) => OnPlayerPause?.Invoke(this, EventArgs.Empty);
+            _pauseAction = (ctx) => {
+        Debug.Log("Pause fired! Subscribers: " + OnPlayerPause?.GetInvocationList().Length);
+        OnPlayerPause?.Invoke(this, EventArgs.Empty);
+    };
         _inputSystem_Actions.Player.Pause.performed += _pauseAction;
     }
 
@@ -69,16 +72,10 @@ public class Player : MonoBehaviour
         Vector3 direction = new Vector3(positionX, 0f, positionZ);  // �tabli la direction du vecteur � appliquer sur le joueur
         direction.Normalize();
         _rb.linearVelocity = direction * Time.deltaTime * _vitesse;  // Applique la v�locit� sur le corps du joueur dans la direction du vecteur
-
+        
         if (direction != Vector3.zero)
         {
-            if (!_aBouger)
-            {
-                GestionJeu.Instance.StartTimer(); 
-            }
-
             _aBouger = true;
-
             Quaternion toRotation = Quaternion.LookRotation(direction, Vector3.up);
             transform.rotation = Quaternion.RotateTowards(transform.rotation, toRotation, _rotationSpeed * Time.fixedDeltaTime);
         }

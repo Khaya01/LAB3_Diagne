@@ -7,7 +7,6 @@ using System.Collections;
 
 public class UIGame : UI
 {
-
     public static UIGame Instance;
 
     [SerializeField] private GameObject _pausePanel;
@@ -21,91 +20,87 @@ public class UIGame : UI
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            SceneManager.sceneLoaded += OnSceneLoaded; 
         }
         else
         {
-            Instance._pausePanel = this._pausePanel;
-            Instance._continueButton = this._continueButton;
-            Instance._txtTime = this._txtTime;
-            Instance._txtCollisions = this._txtCollisions;
-
-            gameObject.SetActive(false);
             Destroy(gameObject);
         }
     }
 
-    private void Start()
+    private void OnEnable()
     {
-        if (Instance != this) return;
-        Player.OnPlayerPause -= Player_OnPlayerPause;
-        Player.OnPlayerPause += Player_OnPlayerPause;
-        GestionCollision.OnCollisionOccured -= CollisionManager_OnCollisionOccured;
-        GestionCollision.OnCollisionOccured += CollisionManager_OnCollisionOccured;
-        ChangeCollisionUI();
+        SceneManager.sceneLoaded += SceneManager_sceneLoaded;
     }
 
-    private void Player_OnPlayerPause(object sender, System.EventArgs e)
+    private void OnDisable()
     {
-        Debug.Log("UIGame reçu! pausePanel: " + _pausePanel);
-        _pausePanel.SetActive(!_pausePanel.activeSelf);
-        if (EventSystem.current != null)
-            EventSystem.current.SetSelectedGameObject(_continueButton.gameObject);
+        SceneManager.sceneLoaded -= SceneManager_sceneLoaded;
+    }
+
+    private void Start()
+    {
+        Debug.Log("UIGame Start!");
+
+        Player.OnPlayerPause -= Player_OnPlayerPause;
+        Player.OnPlayerPause += Player_OnPlayerPause;
+
+        GestionCollision.OnCollisionOccured -= CollisionManager_OnCollisionOccured;
+        GestionCollision.OnCollisionOccured += CollisionManager_OnCollisionOccured;
+
+        ChangeCollisionUI();
     }
 
     private void OnDestroy()
     {
-        SceneManager.sceneLoaded -= OnSceneLoaded;
-
         Player.OnPlayerPause -= Player_OnPlayerPause;
         GestionCollision.OnCollisionOccured -= CollisionManager_OnCollisionOccured;
     }
-
-
 
     private void Update()
     {
         TimeDisplayUI();
     }
 
+    private void Player_OnPlayerPause(object sender, System.EventArgs e)
+    {
+        Debug.Log("UIGame reçu! pausePanel: " + _pausePanel);
+
+        if (_pausePanel != null)
+        {
+            _pausePanel.SetActive(!_pausePanel.activeSelf);
+        }
+
+        if (_pausePanel != null && _pausePanel.activeSelf)
+        {
+            StartCoroutine(SelectionnerBoutonContinue());
+        }
+    }
+
+    private IEnumerator SelectionnerBoutonContinue()
+    {
+        yield return null;
+
+        if (EventSystem.current != null && _continueButton != null)
+        {
+            EventSystem.current.SetSelectedGameObject(null);
+            EventSystem.current.SetSelectedGameObject(_continueButton.gameObject);
+        }
+    }
+
     private void TimeDisplayUI()
     {
         Player player = FindFirstObjectByType<Player>();
-        if (player == null)
-        {
-            Debug.Log("Player introuvable!");
-            return;
-        }
 
-        Debug.Log($"aBouger: {player.GetABouger()} | temps: {GestionJeu.Instance.GetTempsActuel()}");
-
-        if (player.GetABouger())
+        if (player != null && player.GetABouger())
         {
-            _txtTime.text = $"Temps : {GestionJeu.Instance.GetTempsActuel():f2}";
+            GestionJeu.Instance.DemarrerTemps();
+            float elapsedTime = GestionJeu.Instance.GetTempsActuel();
+            _txtTime.text = $"Temps : {elapsedTime:f2}";
         }
         else
         {
-            _txtTime.text = "Temps : 0.00";
+            _txtTime.text = $"Temps : {GestionJeu.Instance.GetTempsDebutNiveau():f2}";
         }
-    }
-
-    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-    {
-        Debug.Log("UIGame rebind après reload");
-        StartCoroutine(RebindAfterLoad());
-    }
-
-    private IEnumerator RebindAfterLoad()
-    {
-        yield return null; // attend que tous les Awake/Start de la scène soient faits
-
-        Player.OnPlayerPause -= Player_OnPlayerPause;
-        Player.OnPlayerPause += Player_OnPlayerPause;
-
-        GestionCollision.OnCollisionOccured -= CollisionManager_OnCollisionOccured;
-        GestionCollision.OnCollisionOccured += CollisionManager_OnCollisionOccured;
-
-        ChangeCollisionUI();
     }
 
     private void CollisionManager_OnCollisionOccured(object sender, GestionCollision.OnCollisionOccuredEventArgs e)
@@ -115,26 +110,62 @@ public class UIGame : UI
 
     private void ChangeCollisionUI()
     {
-        Debug.Log($"_txtCollisions null? {_txtCollisions == null} | pointage: {GestionJeu.Instance.Pointage}");
-        _txtCollisions.text = $"Collisions : {GestionJeu.Instance.Pointage}";
+        if (_txtCollisions != null)
+        {
+            _txtCollisions.text = $"Collisions : {GestionJeu.Instance.Pointage}";
+        }
     }
 
     public void FermerPausePanel()
     {
-        _pausePanel.SetActive(false);
+        if (_pausePanel != null)
+        {
+            _pausePanel.SetActive(false);
+        }
     }
 
     public void OnRecommencer()
     {
-        _pausePanel.SetActive(false);
+        if (_pausePanel != null)
+        {
+            _pausePanel.SetActive(false);
+        }
+
         Time.timeScale = 1.0f;
         GestionJeu.Instance.RecommencerNiveau();
     }
 
-
     public void OnContinue()
     {
-        // Continuer
         Player.TriggerOnPlayerPause(this);
+    }
+
+    private void SceneManager_sceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        GameObject pauseObj = GameObject.Find("PausePanel");
+        if (pauseObj != null)
+        {
+            _pausePanel = pauseObj;
+        }
+
+        GameObject continueObj = GameObject.Find("BtnContinue");
+        if (continueObj != null)
+        {
+            _continueButton = continueObj.GetComponent<Button>();
+        }
+
+        GameObject timeObj = GameObject.Find("TxtTime");
+        if (timeObj != null)
+        {
+            _txtTime = timeObj.GetComponent<TextMeshProUGUI>();
+        }
+
+        GameObject collisionsObj = GameObject.Find("TxtCollisions");
+        if (collisionsObj != null)
+        {
+            _txtCollisions = collisionsObj.GetComponent<TextMeshProUGUI>();
+        }
+
+        ChangeCollisionUI();
     }
 }
